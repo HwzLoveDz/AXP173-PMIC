@@ -1,7 +1,0 @@
-{
-    "configuration": "xtal=160,vt=flash,exception=disabled,stacksmash=disabled,ssl=all,mmu=3232,non32xfer=fast,eesz=4M2M,led=2,ip=lm2f,dbg=Disabled,lvl=None____,wipe=none,baud=921600",
-    "board": "esp8266:esp8266:nodemcuv2",
-    "sketch": "AXP173_U8G2.ino",
-    "output": "./build",
-    "port": "COM5"
-}
