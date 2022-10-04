@@ -10,7 +10,7 @@
  */
 
 #include "AXP173.h"
-#include <U8g2lib.h>
+#include "log.h"
 
 #ifdef U8X8_HAVE_HW_SPI
 #include <SPI.h>
@@ -27,7 +27,7 @@ U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0,U8X8_PIN_NONE);
 
 uint8_t u8log_buffer[U8LOG_WIDTH*U8LOG_HEIGHT];
 
-U8G2LOG u8g2log;
+//U8G2LOG u8g2log;
 AXP173 pmu;       //声明pmu对象
 //I2C_PORT iic;   //声明iic对象
 
@@ -56,8 +56,8 @@ void setup() {
     /* Set PMU Config */
     setPmuConfig();
 
-    u8g2log.printf("This is AXP173 PMU multi_Test\n");
-    u8g2log.printf("AXP173 Open Success\n");
+    lprintf(LOG_INFO,"This is AXP173 PMU multi_Test\n");
+    lprintf(LOG_INFO,"AXP173 Open Success\n");
 
 }
 
@@ -65,33 +65,33 @@ void setup() {
 void KeyPressIRQEvent(){
     if (pmu.powerState()) {
         if (pmu.getShortPressIRQState()) {      //获取对应位IRQ状态信息 true or false
-            u8g2log.printf("PEK Short Press\n");
+            lprintf(LOG_INFO,"PEK Short Press\n");
             pmu.setShortPressIRQDisabale();     //对应位写1结束中断
             static bool LOCK_STATE = 1; //初始化屏幕状态
             if (LOCK_STATE) {   // = 1 睡眠
                 // pmu.prepareToSleep();
                 u8g2.setPowerSave(1);
                 LOCK_STATE = 0;
-                u8g2log.printf("Screen Lock\n");
+                lprintf(LOG_INFO,"Screen Lock\n");
             }
             else {              // = 0 唤醒
                 // pmu.RestoreFromLightSleep();
                 u8g2.setPowerSave(0);
                 LOCK_STATE = 1;
-                u8g2log.printf("Screen UnLock\n");
+                lprintf(LOG_INFO,"Screen UnLock\n");
             } 
             /* 息屏时设置lightsleep或者deepsleep模式 */
         }
         else if (pmu.getLongPressIRQState()) {  //获取对应位IRQ状态信息 true or false
-            // u8g2log.printf("PEK Long Press\n");
+            lprintf(LOG_INFO,"PEK Long Press\n");
             pmu.setLongPressIRQDisabale();      //对应位写1结束中断
-            // u8g2log.printf("Shut Down\n");
+            lprintf(LOG_INFO,"Shut Down\n");
             pmu.powerOFF();                     //长按 2 秒关机
             /* 关机设置deepsleep模式待机或者直接关机 */
         }
     }
     else {
-        // u8g2log.printf("AXP173 ERROR!\n");
+        lprintf(LOG_ERROR,"AXP173 ERROR!\n");
         delay(1000); 
     }
 }
@@ -167,34 +167,34 @@ void setPmuConfig() {   //电源芯片ADC，库仑计等功能设置
     /* Enable Coulometer and set COULOMETER_ENABLE*/
     pmu.setCoulometer(AXP173::COULOMETER_ENABLE, true); //库仑计使能
 
-    u8g2log.printf("AXP173 Set OK\n");
+    lprintf(LOG_INFO,"AXP173 Set OK\n");
 }
 
 void printPmuInfo() {   //需要打印在屏幕上的芯片信息
 
     /* Get PMU temp info */
-    u8g2log.printf("CoreTemp :%.2f 'C\n", pmu.getAXP173Temp());                //芯片温度
+    lprintf(LOG_INFO,"CoreTemp :%.2f 'C\n", pmu.getAXP173Temp());                //芯片温度
 
     /* Get VBUS info */
-    // u8g2log.printf("VBUS_voltage :%.2f V\n", pmu.getVBUSVoltage());         //VBUS输入电压
-    // u8g2log.printf("VBUS_current :%.2f mA\n", pmu.getVBUSCurrent());        //VBUS输入电流
+    // lprintf(LOG_INFO,"VBUS_voltage :%.2f V\n", pmu.getVBUSVoltage());         //VBUS输入电压
+    // lprintf(LOG_INFO,"VBUS_current :%.2f mA\n", pmu.getVBUSCurrent());        //VBUS输入电流
 
     if(pmu.isBatExist()){
-        //u8g2log.printf("Battery :Battery Exist\n");                         //电池接入状态
+        //lprintf(LOG_INFO,"Battery :Battery Exist\n");                         //电池接入状态
         /* Get Battery info */
-        pmu.isCharging() ? u8g2log.printf("Charging :Is Charging s\n") : u8g2log.printf("Charging :NO or END Charging\n");//充电状态
-        u8g2log.printf("Bat_voltage :%.2f V\n", pmu.getBatVoltage());           //电池电压
-        u8g2log.printf("Bat_Current :%.2f mA\n", pmu.getBatCurrent());          //电池电流  正为充电，负为放电
+        pmu.isCharging() ? lprintf(LOG_INFO,"Charging :Is Charging s\n") : lprintf(LOG_INFO,"Charging :NO or END Charging\n");//充电状态
+        lprintf(LOG_INFO,"Bat_voltage :%.2f V\n", pmu.getBatVoltage());           //电池电压
+        lprintf(LOG_INFO,"Bat_Current :%.2f mA\n", pmu.getBatCurrent());          //电池电流  正为充电，负为放电
         
-        //u8g2log.printf("Bat_Level :%.2f %%\n", pmu.getBatLevel());            //电池电量百分比显示
-        //u8g2log.printf("Bat_BatPower :%.2f W", pmu.getBatPower());            //电池瞬时功率
+        //lprintf(LOG_INFO,"Bat_Level :%.2f %%\n", pmu.getBatLevel());            //电池电量百分比显示
+        //lprintf(LOG_INFO,"Bat_BatPower :%.2f W", pmu.getBatPower());            //电池瞬时功率
 
-        u8g2log.printf("GetBatCoulombInput :%.2f C\n", pmu.GetBatCoulombInput());   //Get Coulomb charge Data
-        u8g2log.printf("GetBatCoulombOutput :%.2f C\n", pmu.GetBatCoulombOutput());       //Get Coulomb Discharge Data
-        u8g2log.printf("CoulometerData :%.2f C\n", pmu.getCoulometerData());        //get coulomb val affter calculation
+        lprintf(LOG_INFO,"GetBatCoulombInput :%.2f C\n", pmu.GetBatCoulombInput());   //Get Coulomb charge Data
+        lprintf(LOG_INFO,"GetBatCoulombOutput :%.2f C\n", pmu.GetBatCoulombOutput());       //Get Coulomb Discharge Data
+        lprintf(LOG_INFO,"CoulometerData :%.2f C\n", pmu.getCoulometerData());        //get coulomb val affter calculation
     }
     else{
-        u8g2log.printf("Battery :NO Battery\n");                            //没电池就输出这
+        lprintf(LOG_INFO,"Battery :NO Battery\n");                            //没电池就输出这
     }
 
 }
