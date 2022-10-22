@@ -1,6 +1,5 @@
 #include "I2C_PORT.h"
 
-
 /* Port interface */
 #ifdef ARDUINO
 void I2C_PORT::_I2C_init(TwoWire * wire, uint8_t dev_addr) {

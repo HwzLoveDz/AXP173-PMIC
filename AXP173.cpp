@@ -1,10 +1,17 @@
 /**
  * @file AXP173.cpp
- * @author By mondraker (691806052@qq.com) (qq:735791683)
+ * @author By mondraker (691806052@qq.com) (qq group:735791683)
  * @brief 
- * @version 0.1
- * @date 2022-09-26
+ * @version V1.1
+ * @date 2022-09-28 上传文件
  * 
+ *       2022-10-22 
+ *      1.把枚举体从类中提取出来，免去主函数中需要引用类写法
+ *      （例子）
+ *         改前：AXP173::OP_LDO2
+ *         改后：OP_LDO2
+ *      2.把对象声明在库里完成，不需要在主函数里声明
+ *
  * @copyright Copyright (c) 2022
  * 
  */
