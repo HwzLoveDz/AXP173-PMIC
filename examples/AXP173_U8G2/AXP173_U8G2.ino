@@ -21,6 +21,9 @@
 
 // U8g2 constructor
 U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0,U8X8_PIN_NONE);
+/* IIC pin */
+// SCL  5   D1
+// SDA  4   D2
 
 #define U8LOG_WIDTH 30
 #define U8LOG_HEIGHT 7
@@ -28,13 +31,8 @@ U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0,U8X8_PIN_NONE);
 uint8_t u8log_buffer[U8LOG_WIDTH*U8LOG_HEIGHT];
 
 //U8G2LOG u8g2log;
-AXP173 pmu;       //声明pmu对象
+//AXP173 pmu;       //声明pmu对象
 //I2C_PORT iic;   //声明iic对象
-
-/* IIC pin */
-// SCL  5   D1
-// SDA  4   D2
-
 
 void setup() {
 
@@ -105,7 +103,7 @@ void loop(){
 
     //delay(100); 
     
-    pmu.initKeyPressIRQ(AXP173::LPRESS_2_5S);   //初始化按键中断事件 （设置长按键触发时间）
+    pmu.initKeyPressIRQ(LPRESS_2_5S);   //初始化按键中断事件 （设置长按键触发时间）
     KeyPressIRQEvent();                         //按键中断事件判断
 
 }
@@ -125,47 +123,47 @@ void screenPrint() {    //屏幕绘制设置
 
 void setPmuPower() {    //电源通道电压输出设置，交换位置可以设置上电时序，中间加delay可以延迟上电
     /* Enable and set LDO2 voltage */
-    pmu.setOutputEnable(AXP173::OP_LDO2, true);     //LDO2设置为输出
-    pmu.setOutputVoltage(AXP173::OP_LDO2, 3000);    //LDO2电压设置为3.000V
+    pmu.setOutputEnable(OP_LDO2, true);     //LDO2设置为输出
+    pmu.setOutputVoltage(OP_LDO2, 3000);    //LDO2电压设置为3.000V
 
     /* Enable and set LDO3 voltage */
-    pmu.setOutputEnable(AXP173::OP_LDO3, true);     //LDO3设置为输出
-    pmu.setOutputVoltage(AXP173::OP_LDO3, 3300);    //LDO3电压设置为3.300V
+    pmu.setOutputEnable(OP_LDO3, true);     //LDO3设置为输出
+    pmu.setOutputVoltage(OP_LDO3, 3300);    //LDO3电压设置为3.300V
 
     /* Enable and set LDO4 voltage */
-    pmu.setOutputEnable(AXP173::OP_LDO4, true);     //LDO4设置为输出
-    pmu.setOutputVoltage(AXP173::OP_LDO4, 3300);    //LDO4电压设置为3.300V
+    pmu.setOutputEnable(OP_LDO4, true);     //LDO4设置为输出
+    pmu.setOutputVoltage(OP_LDO4, 3300);    //LDO4电压设置为3.300V
 
     /* Enable and set DCDC1 voltage */
-    pmu.setOutputEnable(AXP173::OP_DCDC1, true);    //DCDC1设置为输出
-    pmu.setOutputVoltage(AXP173::OP_DCDC1, 3300);   //DCDC1电压设置为3.300V
+    pmu.setOutputEnable(OP_DCDC1, true);    //DCDC1设置为输出
+    pmu.setOutputVoltage(OP_DCDC1, 3300);   //DCDC1电压设置为3.300V
 
     /* Enable and set DCDC2 voltage */
-    pmu.setOutputEnable(AXP173::OP_DCDC2, true);    //DCDC2设置为输出
-    pmu.setOutputVoltage(AXP173::OP_DCDC2, 2275);   //DCDC2电压设置为2.275V
+    pmu.setOutputEnable(OP_DCDC2, true);    //DCDC2设置为输出
+    pmu.setOutputVoltage(OP_DCDC2, 2275);   //DCDC2电压设置为2.275V
 
     /* Enable Battery Charging */
     pmu.setChargeEnable(true);                      //充电功能使能
-    pmu.setChargeCurrent(AXP173::CHG_360mA);        //设置充电电流为450mA
+    pmu.setChargeCurrent(CHG_360mA);        //设置充电电流为450mA
 }
 
 void setPmuConfig() {   //电源芯片ADC，库仑计等功能设置
     /* Set off time */
-    pmu.setPowerOffTime(AXP173::POWEROFF_4S);       //设置关机后所有电源通道关闭时长为4S
+    pmu.setPowerOffTime(POWEROFF_4S);       //设置关机后所有电源通道关闭时长为4S
 
     /* Set on time */
-    pmu.setPowerOnTime(AXP173::POWERON_128mS);      //设置开机后电源通道启动输出时长为128mS
+    pmu.setPowerOnTime(POWERON_128mS);      //设置开机后电源通道启动输出时长为128mS
 
     /* Enable VBUS ADC */
-    pmu.setADCEnable(AXP173::ADC_VBUS_V, true);     //VBUS ADC 电压使能
-    pmu.setADCEnable(AXP173::ADC_VBUS_C, true);     //VBUS ADC 电流使能
+    pmu.setADCEnable(ADC_VBUS_V, true);     //VBUS ADC 电压使能
+    pmu.setADCEnable(ADC_VBUS_C, true);     //VBUS ADC 电流使能
 
     /* Enable Battery ADC */
-    pmu.setADCEnable(AXP173::ADC_BAT_V, true);      //Battery ADC 电压使能
-    pmu.setADCEnable(AXP173::ADC_BAT_C, true);      //Battery ADC 电流使能
+    pmu.setADCEnable(ADC_BAT_V, true);      //Battery ADC 电压使能
+    pmu.setADCEnable(ADC_BAT_C, true);      //Battery ADC 电流使能
 
     /* Enable Coulometer and set COULOMETER_ENABLE*/
-    pmu.setCoulometer(AXP173::COULOMETER_ENABLE, true); //库仑计使能
+    pmu.setCoulometer(COULOMETER_ENABLE, true); //库仑计使能
 
     lprintf(LOG_INFO,"AXP173 Set OK\n");
 }

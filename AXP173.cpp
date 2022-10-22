@@ -35,6 +35,7 @@ bool AXP173::begin(TwoWire * wire) {
 #else
 void AXP173::begin() {
 /* 各种电压设置与ADC使能一类可以写在这里 */
+
 }
 #endif
 
@@ -479,3 +480,5 @@ void AXP173::RestoreFromLightSleep(void) {      //ldo重启输出
     //setOutputVoltage(AXP173::OP_LDO3, 3300);    //LDO3电压设置为3.300V
 
 }
+
+AXP173 pmu;
