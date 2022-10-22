@@ -1,6 +1,6 @@
 /**
  * @file log.c
- * @author mondraker (you@domain.com)
+ * @author mondraker (691806052@qq.com)
  * @brief 只需要将#define OPEN_LOG 1注释即可取消测试日志打印
  *        只需要将#define LOG_SAVE 1注释即可取消文件日志存储
  *        只需要将#define ARDUINO_LOG 1注释即可取消所有ARDUINO串口打印

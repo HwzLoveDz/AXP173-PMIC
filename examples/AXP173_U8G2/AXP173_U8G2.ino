@@ -1,6 +1,6 @@
 /**
  * @file AXP173_U8G2.ino
- * @author By mondraker (691806052@qq.com) (qq:735791683)
+ * @author By mondraker (691806052@qq.com) (qq group:735791683)
  * @brief  This is AXP173 PMU multi_Test
  * @version 0.1
  * @date 2022-09-28
@@ -25,8 +25,9 @@ U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0,U8X8_PIN_NONE);
 // SCL  5   D1
 // SDA  4   D2
 
-#define U8LOG_WIDTH 30
-#define U8LOG_HEIGHT 7
+/* 日志显示区域调节 */
+#define U8LOG_WIDTH 30      
+#define U8LOG_HEIGHT 7      
 
 uint8_t u8log_buffer[U8LOG_WIDTH*U8LOG_HEIGHT];
 
