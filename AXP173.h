@@ -1,19 +1,14 @@
 /**
  * @file AXP173.h
- * @author By mondraker (691806052@qq.com) (qq group:735791683)
- * @brief
- * @version V1.1
- * @date 2022-09-28 上传文件
+ * @author By mondraker (691806052@qq.com) (qq:735791683)
+ * @brief The base library comes from m5stack,They open-sourced
+ * the AXP192 library,Thanks in advance!
  * 
- *       2022-10-22 
- *      1.把枚举体从类中提取出来，免去主函数中需要引用类写法
- *      （例子）
- *         改前：AXP173::OP_LDO2
- *         改后：OP_LDO2
- *      2.把对象声明在库里完成，不需要在主函数里声明
- *
+ * https://docs.m5stack.com/en/products
+ * 
+ * @version 0.2
+ * @date 2022-12-05
  * @copyright Copyright (c) 2022
- *
  */
 
 #ifndef _AXP173_H_
@@ -28,8 +23,8 @@
 #define AXP173_ADDR_READ 0x69  //设备读地址 ((0x34 << 1) + 1)
 #define AXP173_ADDR_WRITE 0x68 //设备写地址 (0x34 << 1)
 /* AXP173 equipment address */
-#define IRQ_PIN 16
-#define IRQ_STATE digitalRead(IRQ_PIN) // IRQ中断接收引脚 D0
+#define IRQ_PIN 12
+#define IRQ_STATE digitalRead(IRQ_PIN) // IRQ中断接收引脚 D6
 
 typedef enum
 {                 //可调电压输出通道（ldo1为RTC电源，电压不可调）
@@ -80,23 +75,23 @@ typedef enum
 } COULOMETER_CTRL;
 
 typedef enum
-{                    //关机时长设置 （地址：0x36;默认值【只操作最后两位】：0x5D）
-    POWEROFF_4S = 0, // 00
-    POWEROFF_6S,     // 01
-    POWEROFF_8S,     // 10
-    POWEROFF_10S,    // 11
+{                       //关机时长设置 （地址：0x36;【只操作01两位】）
+    POWEROFF_4S = 0,    // 00
+    POWEROFF_6S,        // 01
+    POWEROFF_8S,        // 10
+    POWEROFF_10S,       // 11
 } POWEROFF_TIME;
 
 typedef enum
-{                      //开机时长设置
-    POWERON_128mS = 0, // 00
-    POWERON_512mS,     // 01
-    POWERON_1S,        // 10
-    POWERON_2S,        // 11
+{                                  //开机时长设置（地址：0x36;【只操作67两位】）
+    POWERON_128mS = 0B00000000,    // 0000 0000
+    POWERON_512mS = 0B01000000,    // 0100 0000
+    POWERON_1S    = 0B10000000,    // 1000 0000
+    POWERON_2S    = 0B11000000,    // 1100 0000
 } POWERON_TIME;
 
 typedef enum
-{                  //长按键PEK多长时间触发开关机事件（地址：0x36）
+{                  //长按键PEK触发时间（地址：0x36）
     LPRESS_1S = 0, // 00
     LPRESS_1_5S,   // 01
     LPRESS_2S,     // 10
@@ -118,6 +113,9 @@ class AXP173 : public I2C_PORT
             void begin();
         #endif
 
+        void setPmuPower();  
+        void setPmuConfig();
+        
         /* Power input state（输入电源状态检测） */
         //地址：0x00
         bool isACINExist();      // ACIN存在指示
@@ -132,9 +130,10 @@ class AXP173 : public I2C_PORT
         bool isChargeCsmaller(); //指示充电电流是否小于期望电流（0：实际充电电流等于期望电流；1：实际充电电流小于期望电流）
 
         /* Power output control （电源输出控制）*/
-        void setOutputEnable(OUTPUT_CHANNEL channel, bool state);        // channel：设置电源输出通道（OUTPUT_CHANNEL）；state：设置是否输出
-        void setOutputVoltage(OUTPUT_CHANNEL channel, uint16_t voltage); // channel：设置电源输出通道（OUTPUT_CHANNEL）；voltage：设置输出电压
-                                                                        // DCDC1 & LDO4: 700~3500(mV), DCDC2: 700~2275(mV), LDO2 & LDO3: 1800~3300(mV)
+        void setEnPinEnable(bool state);                                    // 外部升压芯片使能（EN脚高低电平控制）
+        void setOutputEnable(OUTPUT_CHANNEL channel, bool state);           // channel：设置电源输出通道（OUTPUT_CHANNEL）；state：设置是否输出
+        void setOutputVoltage(OUTPUT_CHANNEL channel, uint16_t voltage);    // channel：设置电源输出通道（OUTPUT_CHANNEL）；voltage：设置输出电压
+                                                                            // DCDC1 & LDO4: 700~3500(mV), DCDC2: 700~2275(mV), LDO2 & LDO3: 1800~3300(mV)
         /* Basic control (开关芯片控制) */
         void powerOFF(void);                         //调用直接关机
         bool powerState(void);                       //若关机则返回false
@@ -175,16 +174,18 @@ class AXP173 : public I2C_PORT
         float getTSTemp();     //返回高八位 + 低四位芯片TS脚热敏电阻检测到的电池温度  地址：高0x62 低0x63
 
         /* Read IRQ enable and state REG get PEK Long and Short Press state(读取与操作IRQ使能与状态寄存器获取长按键与短按键状态) */
-        void aoToPowerOFFEnabale();                       //按键时长大于关机时长自动关机使能
+        void aoToPowerOFFEnabale();                       //按键时长大于关机时长自动关机使能（默认使能）
+        void initIRQState();                              //所有IRQ中断使能置零 REG40H 41H 42H 43H 4AH
+        /* ShortPress */
         void setShortPressEnabale();                      //短按键使能REG31H[3] 调用后立刻导致短按键中断发生
         bool getShortPressIRQState();                     //读取短按键IRQ中断状态
-        void initIRQState();                              //所有IRQ中断使能置零 REG40H 41H 42H 43H 4AH
+        void setShortPressIRQDisabale();                  //对应位写1结束中断
+        /* LongPress */
         void setLongPressTime(LONG_PRESS_TIME pressTime); //设置长按键触发时间
         bool getLongPressIRQState();                      //读取长按键IRQ中断状态
-        void initKeyPressIRQ(LONG_PRESS_TIME pressTime);  //初始化IRQ中断使能，设置长按键触发时间
-        void setShortPressIRQDisabale();                  //对应位写1结束中断
         void setLongPressIRQDisabale();                   //对应位写1结束中断
 
+        /* SleepMode */
         void prepareToSleep(void);
         void lightSleep(uint64_t time_in_us);
         void deepSleep(uint64_t time_in_us);

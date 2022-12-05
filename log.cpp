@@ -1,5 +1,5 @@
 
-#include "log.h"
+#include "LOG.h"
 
 char *mdCheckLevel(const int level){    //返回对应的日志等级字符串
     if(level == LOG_DEBUG){
@@ -25,25 +25,25 @@ void logPrintf(const int level,const char * fun,const int line,const char * date
     vsnprintf(buf,sizeof(buf),fmt,arg);     //缓冲区打印（打印到指定缓冲区buf中）
     va_end(arg);        //结束绑定
 
-    #ifdef U8G2_LOG     /*U8g2屏幕日志开关*/
+    #if U8G2_LOG        /*U8g2屏幕日志开关*/
         if(level >= LOG_LEVEL){ //判断输出的日志等级
-            u8g2log.printf("\n[%s]: %s",mdCheckLevel(level),buf);                  //打印到串口
+            u8g2log.printf("\n%s"/* [%s]:  */,/* mdCheckLevel(level), */buf);                               //打印到屏幕
         }
     #endif
 
-    #ifdef ARDUINO_LOG  /*arduino串口日志开关*/
+    #if ARDUINO_LOG     /*arduino串口日志开关*/
         if(level >= LOG_LEVEL){ //判断输出的日志等级
-            Serial.printf("\n[%s][%s %d]: %s",mdCheckLevel(level),fun,line,buf);                  //打印到串口
+            Serial.printf("\n[%s][%s %d]: %s",mdCheckLevel(level),fun,line,buf);                //打印到串口
         }
     #endif
 
-    #ifdef OPEN_LOG     /*终端日志开关*/
+    #if TERMINAL_LOG     /*终端日志开关*/
         if(level >= LOG_LEVEL){ //判断输出的日志等级
             printf("\n[%s][%s %d]: %s",mdCheckLevel(level),fun,line,buf);                       //打印到终端
         }
     #endif
 
-    #ifdef LOG_SAVE     /*文件日志开关*/
+    #if LOG_SAVE        /*文件日志开关*/
         const char *filename = "log.txt";   //日志文件名
         FILE *pf = fopen(filename,"a");     //创建文件指针
         if(level >= LOG_LEVEL){ //判断输出的日志等级

@@ -1,6 +1,6 @@
 /**
  * @file log.c
- * @author mondraker (691806052@qq.com)
+ * @author mondraker (you@domain.com)
  * @brief 只需要将#define OPEN_LOG 1注释即可取消测试日志打印
  *        只需要将#define LOG_SAVE 1注释即可取消文件日志存储
  *        只需要将#define ARDUINO_LOG 1注释即可取消所有ARDUINO串口打印
@@ -29,11 +29,11 @@
 #include <U8g2lib.h>    //屏幕打印日志使用
 
 /* 用的时候可以直接全部注释，移到主代码里，方便调试 */
-//#define ARDUINO_LOG 1 //注释即可取消所有ARDUINO串口打印
-#define U8G2_LOG 1    //注释即可取消所有U8g2屏幕打印
-//#define OPEN_LOG 1    //注释即可取消所有终端测试日志打印
-//#define LOG_SAVE 1    //注释即可取消所有日志存储到文件中
-#define LOG_LEVEL LOG_DEBUG //仅打印大于等于该等级的日志
+#define ARDUINO_LOG     0           //注释即可取消所有ARDUINO串口打印
+#define U8G2_LOG        1           //注释即可取消所有U8g2屏幕打印
+#define TERMINAL_LOG    0           //注释即可取消所有终端测试日志打印
+#define LOG_SAVE        0           //注释即可取消所有日志存储到文件中
+#define LOG_LEVEL       LOG_DEBUG   //仅打印大于等于该等级的日志
 
 enum LOG_MODE{      //枚举所需的输出日志类型
     LOG_DEBUG = 0,  //0

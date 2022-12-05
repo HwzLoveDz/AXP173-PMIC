@@ -1,19 +1,14 @@
 /**
  * @file AXP173.cpp
- * @author By mondraker (691806052@qq.com) (qq group:735791683)
- * @brief 
- * @version V1.1
- * @date 2022-09-28 上传文件
+ * @author By mondraker (691806052@qq.com) (qq:735791683)
+ * @brief The base library comes from m5stack,They open-sourced
+ * the AXP192 library,Thanks in advance!
  * 
- *       2022-10-22 
- *      1.把枚举体从类中提取出来，免去主函数中需要引用类写法
- *      （例子）
- *         改前：AXP173::OP_LDO2
- *         改后：OP_LDO2
- *      2.把对象声明在库里完成，不需要在主函数里声明
- *
+ * https://docs.m5stack.com/en/products
+ * 
+ * @version 0.2
+ * @date 2022-12-05
  * @copyright Copyright (c) 2022
- * 
  */
 #include "AXP173.h"
 
@@ -37,14 +32,75 @@ inline uint16_t AXP173::_getMid(uint16_t input, uint16_t min, uint16_t max) {
 bool AXP173::begin(TwoWire * wire) {
     _I2C_init(wire, AXP173_ADDR);
 
+    /* Set PMU Voltage */
+    setPmuPower();
+
+    /* Set PMU Config */
+    setPmuConfig();
     return _I2C_checkDevAvl();
 }
 #else
 void AXP173::begin() {
 /* 各种电压设置与ADC使能一类可以写在这里 */
 
+    /* Set PMU Voltage */
+    setPmuPower();
+
+    /* Set PMU Config */
+    setPmuConfig();
 }
 #endif
+
+//写在一切IIC设备初始化前面，电源芯片必须第一个初始化，并且在其他设备iic初始化之前设置好电压，否则其他设备程序初始化完结果没供电。
+void AXP173::setPmuPower() {    //电源通道电压输出设置，交换位置可以设置上电时序，中间加delay可以延迟上电
+    /* Enable and set LDO2 voltage */
+    setOutputEnable(OP_LDO2, true);     //LDO2设置为输出
+    setOutputVoltage(OP_LDO2, 3300);    //LDO2电压设置为3.000V
+
+    /* Enable and set LDO3 voltage */
+    setOutputEnable(OP_LDO3, true);     //LDO3设置为输出
+    setOutputVoltage(OP_LDO3, 3300);    //LDO3电压设置为3.300V
+
+    /* Enable and set LDO4 voltage */
+    setOutputEnable(OP_LDO4, true);     //LDO4设置为输出
+    setOutputVoltage(OP_LDO4, 3300);    //LDO4电压设置为3.300V
+
+    /* Enable and set DCDC1 voltage */
+    setOutputEnable(OP_DCDC1, true);    //DCDC1设置为输出
+    setOutputVoltage(OP_DCDC1, 3300);   //DCDC1电压设置为3.300V
+
+    /* Enable and set DCDC2 voltage */
+    setOutputEnable(OP_DCDC2, true);    //DCDC2设置为输出
+    setOutputVoltage(OP_DCDC2, 2275);   //DCDC2电压设置为2.275V
+
+    /* Enable Battery Charging */
+    setChargeEnable(true);                      //充电功能使能
+    setChargeCurrent(CHG_450mA);        //设置充电电流为450mA
+}
+void AXP173::setPmuConfig() {   //电源芯片ADC，库仑计等功能设置
+    /* Clear IRQ */
+    initIRQState();
+
+    /* Set on time */
+    setPowerOnTime(POWERON_1S);         //设置PEK开机时长为1S 
+
+    /* Set off time */
+    setPowerOffTime(POWEROFF_4S);       //设置PEK关机时长为4S（我这个芯片因为定制好像只能设置6，8，10s）
+
+    /* Set PEKLongPress time */
+    setLongPressTime(LPRESS_1_5S);      //设置PEK长按键时长为1.5S
+
+    /* Enable VBUS ADC */
+    setADCEnable(ADC_VBUS_V, true);     //VBUS ADC 电压使能
+    setADCEnable(ADC_VBUS_C, true);     //VBUS ADC 电流使能
+
+    /* Enable Battery ADC */
+    setADCEnable(ADC_BAT_V, true);      //Battery ADC 电压使能
+    setADCEnable(ADC_BAT_C, true);      //Battery ADC 电流使能
+
+    /* Enable Coulometer and set COULOMETER_ENABLE*/
+    setCoulometer(COULOMETER_ENABLE, true); //库仑计使能
+}
 
 
 
@@ -109,6 +165,13 @@ bool AXP173::isChargeCsmaller() {
 void AXP173::setOutputEnable(OUTPUT_CHANNEL channel, bool state) {
     uint8_t buff = _I2C_read8Bit(0x12); //buff类型为unsigned char
     buff = state ? ( buff | (1U << channel) ) : ( buff & ~(1U << channel) );
+    _I2C_write1Byte(0x12, buff);        //对0x12寄存器写入1字节也就是8位二进制buff
+}
+
+/* 外部升压芯片使能（EN脚高低电平控制） */
+void AXP173::setEnPinEnable(bool state) {
+    uint8_t buff = _I2C_read8Bit(0x12); //buff类型为unsigned char
+    buff = state ? ( (buff & 0B10111111) | 0x01000000 ) : ( buff & ~0x01000000 );
     _I2C_write1Byte(0x12, buff);        //对0x12寄存器写入1字节也就是8位二进制buff
 }
 
@@ -414,16 +477,7 @@ float AXP173::getTSTemp() {
 /* 按键状态检测 */
 void AXP173::aoToPowerOFFEnabale(void) {        //按键时长大于关机时长自动关机  
     _I2C_write1Byte(0x36, (_I2C_read8Bit(0x36) | 0B00001000));
-}     
-
-void AXP173::setShortPressEnabale(void) {       //短按键使能REG31H[3] 调用后立刻导致短按键中断发生
-    _I2C_write1Byte(0x31, (_I2C_read8Bit(0x31) | 0B00001000));
 }
-
-bool AXP173::getShortPressIRQState(void) {      //读取短按键IRQ中断状态
-    return ( _I2C_read8Bit(0x46) & 0B00000010 ) ? true : false;
-}
-
 void AXP173::initIRQState(void) {               //所有IRQ中断使能置零REG40H 41H 42H 43H 4AH
     _I2C_write1Byte(0x40, ((_I2C_read8Bit(0x40) & 0B00000001) | 0B00000000));
     _I2C_write1Byte(0x41, ((_I2C_read8Bit(0x41) & 0B00000000) | 0B00000000));
@@ -432,26 +486,24 @@ void AXP173::initIRQState(void) {               //所有IRQ中断使能置零REG
     _I2C_write1Byte(0x4A, ((_I2C_read8Bit(0x4A) & 0B01111111) | 0B00000000));
 }
 
-void AXP173::setLongPressTime(LONG_PRESS_TIME pressTime) {  //设置长按键触发时间 5 and 4 bit
-    _I2C_write1Byte(0x36, ((_I2C_read8Bit(0x36) & 0B11001111) | pressTime));
+void AXP173::setShortPressEnabale(void) {       //短按键使能REG31H[3] 调用后立刻导致短按键中断发生
+    _I2C_write1Byte(0x31, (_I2C_read8Bit(0x31) | 0B00001000));
 }
-
-bool AXP173::getLongPressIRQState(void) {       //读取长按键IRQ中断状态
-    return ( _I2C_read8Bit(0x46) & 0B00000001 ) ? true : false;
+bool AXP173::getShortPressIRQState(void) {      //读取短按键IRQ中断状态
+    return ( _I2C_read8Bit(0x46) & 0B00000010 ) ? true : false;
 }
-
-void AXP173::initKeyPressIRQ(LONG_PRESS_TIME pressTime) {   //初始化IRQ中断使能，设置长按键触发时间
-    initIRQState();
-    aoToPowerOFFEnabale();
-    //setShortPressEnabale();
-    setLongPressTime(pressTime);
-}
-
-void AXP173::setShortPressIRQDisabale(void) {   //对应位写1结束中断
+void AXP173::setShortPressIRQDisabale(void) {   //短按键对应位写1结束中断
     _I2C_write1Byte(0x46, (_I2C_read8Bit(0x46) | 0B00000010));
 }
 
-void AXP173::setLongPressIRQDisabale(void) {    //对应位写1结束中断
+
+void AXP173::setLongPressTime(LONG_PRESS_TIME pressTime) {  //设置长按键触发时间 5 and 4 bit
+    _I2C_write1Byte(0x36, ((_I2C_read8Bit(0x36) & 0B11001111) | pressTime));
+}
+bool AXP173::getLongPressIRQState(void) {       //读取长按键IRQ中断状态
+    return ( _I2C_read8Bit(0x46) & 0B00000001 ) ? true : false;
+}
+void AXP173::setLongPressIRQDisabale(void) {    //长按键对应位写1结束中断
     _I2C_write1Byte(0x46, (_I2C_read8Bit(0x46) | 0B00000001));
 }
 
