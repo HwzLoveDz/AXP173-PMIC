@@ -3,10 +3,9 @@
 
 2022.12.8更新加入了菜单功能，按键和电池信息可以通过菜单切换！！！！
 其它详细信息见开源广场：https://oshwhub.com/mondraker/axp173
-代码更新基本都在这里完成，硬件方面主要更新在↑面！！！
-请注意：
-Arduino not support "printf", Please replace all with "print" or "println"
-Arduino 不支持 "printf", 请全部替换为 "print" 或 "println"
+
+代码更新基本在GitHub完成，硬件方面主要更新在开源工程里！！！
+请注意：Arduino 不支持 "printf", 请全部替换为 "print" 或 "println"
 
 
 以下是正文：
