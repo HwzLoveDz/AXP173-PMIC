@@ -1,13 +1,15 @@
 /**
  * @file AXP173_U8G2.ino
  * @author By mondraker (691806052@qq.com) (qq:735791683)
- * @brief  This is AXP173 PMU multi_Test
+ * @brief  This is AXP173 PMU buttonLog&batteryInfo Test
  *         ! You need to get the "U8g2lib.h" library first
  *         ! 你需要先下载 "U8g2lib.h" 库
  *         ! Arduino not support "printf", Please replace all with "print" or "println"
  *         ! Arduino 不支持 "printf", 请全部替换为 "print" 或 "println"
+ * IRQ_PIN 12
+ * SDA&SCA hardwareIIC
  * @version 0.2
- * @date 2022-12-05
+ * @date 2022-12-09
  * @copyright Copyright (c) 2022
  */
 
@@ -58,10 +60,10 @@ void fun4();    //菜单1-2-1
 typedef struct
 {
     uint8_t current;
-    uint8_t up;    // 向上翻索引号
-    uint8_t down;  // 向下翻索引号
-    uint8_t enter; // 确认索引号
-    uint8_t back;    // 返回翻索引号
+    uint8_t up;     // 向上翻索引号
+    uint8_t down;   // 向下翻索引号
+    uint8_t enter;  // 确认索引号
+    uint8_t back;   // 返回翻索引号
     void (*current_operation)();
 } key_table;
 
