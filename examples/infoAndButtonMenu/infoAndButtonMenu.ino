@@ -33,7 +33,7 @@ OneButton buttonDown(D4, true);
 
 /* U8g2 constructor */
 U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE);
-bool LOCK_STATE = 1;     //初始化屏幕状态
+bool LOCK_STATE = 1; // 初始化屏幕状态
 
 /* Screen Log Set */
 #define U8LOG_WIDTH 30
@@ -51,36 +51,37 @@ uint8_t u8log_buffer[U8LOG_WIDTH * U8LOG_HEIGHT];
 uint8_t test_log = 0;
 uint8_t func_index = 0;
 void (*current_operation_index)();
-void fun1();    //菜单1-1
-void fun2();    //菜单1-2
-void page_1_to_2();//菜单1光标
-void fun3();    //菜单1-1-1
-void fun4();    //菜单1-2-1
+void fun1();        // 菜单1-1
+void fun2();        // 菜单1-2
+void page_1_to_2(); // 菜单1光标
+void fun3();        // 菜单1-1-1
+void fun4();        // 菜单1-2-1
 
 typedef struct
 {
     uint8_t current;
-    uint8_t up;     // 向上翻索引号
-    uint8_t down;   // 向下翻索引号
-    uint8_t enter;  // 确认索引号
-    uint8_t back;   // 返回翻索引号
+    uint8_t up;    // 向上翻索引号
+    uint8_t down;  // 向下翻索引号
+    uint8_t enter; // 确认索引号
+    uint8_t back;  // 返回翻索引号
     void (*current_operation)();
 } key_table;
 
-key_table table[4]=
-{//{界面序号，上，下，确认}
-    {0,1,1,2,0,(*fun1)},
-    {1,0,0,3,1,(*fun2)},
+key_table table[4] =
+    {
+        //{界面序号，上，下，确认, 返回}
+        {0, 1, 1, 2, 0, (*fun1)},
+        {1, 0, 0, 3, 1, (*fun2)},
 
-    {2,2,2,2,0,(*fun3)},
-    {3,3,3,3,1,(*fun4)},
+        {2, 2, 2, 2, 0, (*fun3)},
+        {3, 3, 3, 3, 1, (*fun4)},
 };
 
 void setup()
 {
 
     /* Init Serial */
-    Serial.begin(115200); //设置波特率为 115200
+    Serial.begin(115200); // 设置波特率为 115200
 
     /* Init IIC */
     Wire.begin(); // IIC初始化
@@ -91,7 +92,7 @@ void setup()
 
     /* Init Screen */
     // u8g2.begin();
-    u8g2.begin(/*Select=*/ D5, /*Right/Next=*/ U8X8_PIN_NONE, /*Left/Prev=*/ U8X8_PIN_NONE, /*Up=*/ D3, /*Down=*/ D4, /*Home/Cancel=*/ U8X8_PIN_NONE); // Arduboy DevKit
+    u8g2.begin(/*Select=*/D5, /*Right/Next=*/U8X8_PIN_NONE, /*Left/Prev=*/U8X8_PIN_NONE, /*Up=*/D3, /*Down=*/D4, /*Home/Cancel=*/U8X8_PIN_NONE); // Arduboy DevKit
     /* Init Screen Log */
     u8g2log.begin(U8LOG_WIDTH, U8LOG_HEIGHT, u8log_buffer);
 
@@ -102,78 +103,17 @@ void setup()
     // lprintf(LOG_INFO, " -AXP173 Init Success\n");
     // lprintf(LOG_INFO, " -OneButton Init Success\n");
 
-    delay(100); //在这儿停顿
+    delay(100); // 在这儿停顿
 }
 
 void loop()
 {
     /*******************按键索引****************************/
-    buttonHandle();
-    current_operation_index = table[func_index].current_operation;
-    (*current_operation_index)(); // 执行当前操作函数
-}
-
-void KeyPressIRQEvent()
-{
-    if (pmu.powerState())
+    if (pmu.powerState())   //判断芯片是否正常启动了
     {
-        if (pmu.getShortPressIRQState())
-        { //获取对应位IRQ状态信息 true or false
-            lprintf(LOG_INFO, ">PEK Short Press");
-            pmu.setShortPressIRQDisabale(); //对应位写1结束中断
-            // static bool LOCK_STATE = 1;     //初始化屏幕状态
-            if (LOCK_STATE == 1)
-            { // = 1 睡眠
-                // pmu.prepareToSleep();
-                LOCK_STATE = 0;
-                lprintf(LOG_INFO, " -Screen Lock-\n");
-                u8g2.setPowerSave(1);
-            }
-            else if (LOCK_STATE == 0)
-            { // = 0 唤醒
-                // pmu.RestoreFromLightSleep();
-                LOCK_STATE = 1;
-                lprintf(LOG_INFO, " -Screen UnLock-\n");
-                u8g2.setPowerSave(0);
-            }
-        }
-        else if (pmu.getLongPressIRQState())
-        { //获取对应位IRQ状态信息 true or false
-            lprintf(LOG_INFO, ">PEK Long Press");
-            pmu.setLongPressIRQDisabale();  //对应位写1结束中断
-            static bool CONTRAST_STATE = 1; //初始化亮度状态
-            if (CONTRAST_STATE)
-            { // = 1 暗
-                CONTRAST_STATE = 0;
-                LOCK_STATE = 1;
-                u8g2.setPowerSave(0);
-                lprintf(LOG_INFO, " -Screen Dims-\n");
-                u8g2.setFont(u8g2_font_6x12_tr);
-                u8g2.userInterfaceMessage(
-                    "PEK Long Press",
-                    "-Screen Dims-",
-                    "",
-                    " ok \n cancel "
-                );
-                u8g2.setContrast(0);
-            }
-            else if (CONTRAST_STATE == 0)
-            { // = 0 亮
-                CONTRAST_STATE = 1;
-                LOCK_STATE = 1;
-                u8g2.setPowerSave(0);
-                lprintf(LOG_INFO, " -Screen Brightens-\n");
-                u8g2.setFont(u8g2_font_6x12_tr);
-                u8g2.userInterfaceMessage(
-                    "PEK Long Press",
-                    "-Screen Brightens-",
-                    "",
-                    " ok \n cancel "
-                );
-                u8g2.setContrast(255);
-            }
-            u8g2.setFont(u8g2_font_6x13_tr);
-        }
+        buttonHandle();
+        current_operation_index = table[func_index].current_operation;
+        (*current_operation_index)(); // 执行当前操作函数
     }
     else
     {
@@ -182,27 +122,92 @@ void KeyPressIRQEvent()
     }
 }
 
+void KeyPressIRQEvent()
+{
+    if (pmu.getShortPressIRQState())
+    { // 获取对应位IRQ状态信息 true or false
+        lprintf(LOG_INFO, ">PEK Short Press");
+        pmu.setShortPressIRQDisabale(); // 对应位写1结束中断
+        // static bool LOCK_STATE = 1;     //初始化屏幕状态
+        if (LOCK_STATE == 1)
+        { // = 1 睡眠
+            // pmu.prepareToSleep();
+            LOCK_STATE = 0;
+            lprintf(LOG_INFO, " -Screen Lock-\n");
+            u8g2.setPowerSave(1);
+        }
+        else if (LOCK_STATE == 0)
+        { // = 0 唤醒
+            // pmu.RestoreFromLightSleep();
+            LOCK_STATE = 1;
+            lprintf(LOG_INFO, " -Screen UnLock-\n");
+            u8g2.setPowerSave(0);
+        }
+    }
+    else if (pmu.getLongPressIRQState())
+    { // 获取对应位IRQ状态信息 true or false
+        lprintf(LOG_INFO, ">PEK Long Press");
+        pmu.setLongPressIRQDisabale();  // 对应位写1结束中断
+        static bool CONTRAST_STATE = 1; // 初始化亮度状态
+        if (CONTRAST_STATE)
+        { // = 1 暗
+            CONTRAST_STATE = 0;
+            LOCK_STATE = 1;
+            u8g2.setPowerSave(0);
+            lprintf(LOG_INFO, " -Screen Dims-\n");
+            u8g2.setFont(u8g2_font_6x12_tr);
+            u8g2.userInterfaceMessage(
+                "PEK Long Press",
+                "-Screen Dims-",
+                "",
+                " ok \n cancel ");
+            u8g2.setContrast(0);
+        }
+        else if (CONTRAST_STATE == 0)
+        { // = 0 亮
+            CONTRAST_STATE = 1;
+            LOCK_STATE = 1;
+            u8g2.setPowerSave(0);
+            lprintf(LOG_INFO, " -Screen Brightens-\n");
+            u8g2.setFont(u8g2_font_6x12_tr);
+            u8g2.userInterfaceMessage(
+                "PEK Long Press",
+                "-Screen Brightens-",
+                "",
+                " ok \n cancel ");
+            u8g2.setContrast(255);
+        }
+        u8g2.setFont(u8g2_font_6x13_tr);
+    }
+}
+
 void screenPrint()
-{ //屏幕绘制设置
+{ // 屏幕绘制设置
     u8g2.firstPage();
     do
     {
         u8g2.drawFrame(0, 0, u8g2.getDisplayWidth(), u8g2.getDisplayHeight() / 4);
         u8g2.drawFrame(0, 0, u8g2.getDisplayWidth(), u8g2.getDisplayHeight());
-        u8g2.setFont(u8g2_font_6x13_tr);          // font for the title
-        u8g2.setCursor(2+5*6, 13);                    // title position on the display
-        if (test_log == 0){u8g2.print("Battery Log");}
-        else if(test_log == 1){u8g2.print("Button Log");}
+        u8g2.setFont(u8g2_font_6x13_tr); // font for the title
+        u8g2.setCursor(2 + 5 * 6, 13);   // title position on the display
+        if (test_log == 0)
+        {
+            u8g2.print("Battery Log");
+        }
+        else if (test_log == 1)
+        {
+            u8g2.print("Button Log");
+        }
         u8g2.setFont(u8g2_font_tom_thumb_4x6_mf); // set the font for the terminal window
         u8g2.drawLog(2, 24, u8g2log);             // draw the terminal window on the display
     } while (u8g2.nextPage());
 }
 
 void printPmuInfo()
-{ //需要打印在屏幕上的芯片信息
+{ // 需要打印在屏幕上的芯片信息
 
     /* Get PMU temp info */
-    lprintf(LOG_INFO, "CoreTemp :%.2f 'C", pmu.getAXP173Temp()); //芯片温度
+    lprintf(LOG_INFO, "CoreTemp :%.2f 'C", pmu.getAXP173Temp()); // 芯片温度
 
     /* Get VBUS info */
     // lprintf(LOG_INFO,"VBUS_voltage :%.2f V\n", pmu.getVBUSVoltage());         //VBUS输入电压
@@ -212,11 +217,11 @@ void printPmuInfo()
     {
         // lprintf(LOG_INFO,"Battery :Battery Exist");                         //电池接入状态
         /* Get Battery info */
-        pmu.isCharging() ? lprintf(LOG_INFO, "Charging :Is Charging s") : lprintf(LOG_INFO, "Charging :NO or END Charging"); //充电状态
-        lprintf(LOG_INFO, "Bat_voltage :%.2f V", pmu.getBatVoltage());                                                       //电池电压
-        lprintf(LOG_INFO, "Bat_Current :%.2f mA", pmu.getBatCurrent());                                                      //电池电流  正为充电，负为放电
+        pmu.isCharging() ? lprintf(LOG_INFO, "Charging :Is Charging s") : lprintf(LOG_INFO, "Charging :NO or END Charging"); // 充电状态
+        lprintf(LOG_INFO, "Bat_voltage :%.2f V", pmu.getBatVoltage());                                                       // 电池电压
+        lprintf(LOG_INFO, "Bat_Current :%.2f mA", pmu.getBatCurrent());                                                      // 电池电流  正为充电，负为放电
 
-        lprintf(LOG_INFO, "Bat_Level :%.2f %%", pmu.getBatLevel()); //电池电量百分比显示
+        lprintf(LOG_INFO, "Bat_Level :%.2f %%", pmu.getBatLevel()); // 电池电量百分比显示
         // lprintf(LOG_INFO,"Bat_BatPower :%.2f W", pmu.getBatPower());            //电池瞬时功率
 
         // lprintf(LOG_INFO,"GetBatCoulombInput :%.2f C", pmu.GetBatCoulombInput());   //Get Coulomb charge Data
@@ -225,7 +230,7 @@ void printPmuInfo()
     }
     else
     {
-        lprintf(LOG_INFO, "Battery :NO Battery"); //没电池就输出这
+        lprintf(LOG_INFO, "Battery :NO Battery"); // 没电池就输出这
     }
 }
 
@@ -247,7 +252,8 @@ void menuEnter()
     func_index = table[func_index].enter; // 确认
 }
 
-void menuBack(){
+void menuBack()
+{
     doubleclick2();
     func_index = table[func_index].back; // 返回
 }
@@ -284,7 +290,8 @@ void buttonFunctionInit()
     buttonDown.attachDuringLongPress(longPress3);
 }
 
-void buttonClickDet(){
+void buttonClickDet()
+{
     if (digitalRead(D5) == 0)
     {
         u8g2.setPowerSave(0);
@@ -302,28 +309,29 @@ void buttonClickDet(){
     }
 }
 
-void PmuInfoTest(){
+void PmuInfoTest()
+{
     test_log = 0;
-    printPmuInfo();  //测试 1:打印你想要的电源信息
+    printPmuInfo(); // 测试 1:打印你想要的电源信息
     screenPrint();
 }
 
-void buttonClickTest(){
+void buttonClickTest()
+{
     test_log = 1;
     buttonHandle();
     buttonClickDet();
 
-    KeyPressIRQEvent(); //测试 2:AXP173长短按键事件
+    KeyPressIRQEvent(); // 测试 2:AXP173长短按键事件
     screenPrint();
 }
 
-void buttonHandle(){
+void buttonHandle()
+{
     buttonPress.tick();
     buttonUp.tick();
     buttonDown.tick();
 }
-
-
 
 /* buttonPress callback functions */
 
@@ -419,9 +427,8 @@ void longPressStop3()
 } // longPressStop3
 // End
 
-
 /*******************界面设置****************************/
-void fun1()//菜单1-1
+void fun1() // 菜单1-1
 {
     u8g2.clearBuffer();
     page_1_to_2();
@@ -430,7 +437,7 @@ void fun1()//菜单1-1
     u8g2.drawGlyph(5, 16 * (2 % 4 == 0 ? 4 : 2 % 4) - 4, 118);
     u8g2.sendBuffer();
 }
-void fun2()//菜单1-2
+void fun2() // 菜单1-2
 {
     u8g2.clearBuffer();
     page_1_to_2();
@@ -451,11 +458,11 @@ void page_1_to_2()
     u8g2.print(" Button Log ");
 }
 
-void fun3()//菜单1-1-1
+void fun3() // 菜单1-1-1
 {
     PmuInfoTest();
 }
-void fun4()//菜单1-2-1
+void fun4() // 菜单1-2-1
 {
     buttonClickTest();
 }
