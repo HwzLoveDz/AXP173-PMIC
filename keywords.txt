@@ -20,8 +20,6 @@ pmu	KEYWORD1
 
 #######################################	
 
-
-
 lprintf	KEYWORD2
 
 begin	KEYWORD2
