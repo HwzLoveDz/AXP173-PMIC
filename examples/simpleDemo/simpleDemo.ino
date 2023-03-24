@@ -82,8 +82,6 @@ void loop()
 {
 
     printPmuInfo();
-
-    pmu.initKeyPressIRQ(LPRESS_1_5S); //初始化按键中断事件 （设置长按键触发时间）
     KeyPressIRQEvent();               //按键中断事件判断
 }
 

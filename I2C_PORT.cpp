@@ -367,50 +367,51 @@ bool I2C_PORT::_I2C_writeBytes(uint8_t devAddr, uint8_t regAddr, uint8_t length,
 
 // ! End
 
-/**
- * @brief I2C device scan
- *
- * @return int I2C device number
- */
-int I2C_PORT::I2C_dev_scan()
-{
-    uint8_t error, address;
-    int nDevices;
 
-    Serial.println("[I2C_SCAN] device scanning...");
+// /**
+//  * @brief I2C device scan
+//  *
+//  * @return int I2C device number
+//  */
+// int I2C_PORT::I2C_dev_scan()
+// {
+//     uint8_t error, address;
+//     int nDevices;
 
-    nDevices = 0;
-    for (address = 1; address < 127; address++)
-    {
-        // The i2c_scanner uses the return value of
-        // the Write.endTransmisstion to see if
-        // a device did acknowledge to the address.
-        Wire.beginTransmission(address);
-        error = Wire.endTransmission();
+//     Serial.println("[I2C_SCAN] device scanning...");
 
-        if (error == 0)
-        {
-            Serial.print("[I2C_SCAN]: device found at address 0x");
-            if (address < 16)
-                Serial.print("0");
-            Serial.print(address, HEX);
-            Serial.println(" !");
+//     nDevices = 0;
+//     for (address = 1; address < 127; address++)
+//     {
+//         // The i2c_scanner uses the return value of
+//         // the Write.endTransmisstion to see if
+//         // a device did acknowledge to the address.
+//         Wire.beginTransmission(address);
+//         error = Wire.endTransmission();
 
-            nDevices++;
-        }
-        else if (error == 4)
-        {
-            Serial.print("[I2C_SCAN]: unknow error at address 0x");
-            if (address < 16)
-                Serial.print("0");
-            Serial.println(address, HEX);
-        }
-    }
+//         if (error == 0)
+//         {
+//             Serial.print("[I2C_SCAN]: device found at address 0x");
+//             if (address < 16)
+//                 Serial.print("0");
+//             Serial.print(address, HEX);
+//             Serial.println(" !");
 
-    Serial.print("[I2C_SCAN]:");
-    Serial.printf(" %d devices was found\r\n", nDevices);
-    return nDevices;
-}
+//             nDevices++;
+//         }
+//         else if (error == 4)
+//         {
+//             Serial.print("[I2C_SCAN]: unknow error at address 0x");
+//             if (address < 16)
+//                 Serial.print("0");
+//             Serial.println(address, HEX);
+//         }
+//     }
+
+//     Serial.print("[I2C_SCAN]:");
+//     Serial.printf(" %d devices was found\r\n", nDevices);
+//     return nDevices;
+// }
 
 #else
 void I2C_PORT::_I2C_init(uint8_t dev_addr) {}

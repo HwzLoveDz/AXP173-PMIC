@@ -54,7 +54,7 @@ class I2C_PORT {
         bool    _I2C_writeWords(uint8_t devAddr, uint8_t regAddr, uint8_t length, uint16_t *data);
         bool    _I2C_writeBytes(uint8_t devAddr, uint8_t regAddr, uint8_t length, uint8_t *data);
     public:
-        int I2C_dev_scan(); //扫描iic设备地址
+        // int I2C_dev_scan(); //扫描iic设备地址
         static uint16_t readTimeout;
 };
 

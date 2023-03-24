@@ -26,9 +26,11 @@ void logPrintf(const int level,const char * fun,const int line,const char * date
     va_end(arg);        //结束绑定
 
     #if U8G2_LOG        /*U8g2屏幕日志开关*/
+    #ifndef ARDUINO
         if(level >= LOG_LEVEL){ //判断输出的日志等级
             u8g2log.printf("\n%s"/* [%s]:  */,/* mdCheckLevel(level), */buf);                               //打印到屏幕
         }
+    #endif
     #endif
 
     #if ARDUINO_LOG     /*arduino串口日志开关*/
